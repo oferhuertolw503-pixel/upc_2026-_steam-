@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse -Depth 2)",
+      "Bash(Format-Table Name, Length, LastWriteTime -AutoSize)",
+      "Bash(pip *)",
+      "Bash(jupyter lab *)",
+      "Bash(Start-Sleep -Seconds 3)",
+      "Bash(Get-Content \"C:\\\\Users\\\\OMEN~1.LAP\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-OMEN-LAPTOP-8C8PH934-code-homework-------------\\\\c9311499-fd5b-499d-ba24-732e84bb3304\\\\tasks\\\\bs2crua3q.output\")",
+      "Skill(code-review)",
+      "Bash(python -c ' *)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh repo *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)"
+    ]
+  }
+}

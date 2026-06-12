@@ -1,0 +1,27 @@
+# 大型数据集（通过 download_dataset.py 从 Kaggle 获取）
+Steam Games 2024.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# 系统文件
+Thumbs.db
+.DS_Store
