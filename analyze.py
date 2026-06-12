@@ -35,13 +35,20 @@ plt.rcParams['savefig.dpi'] = 150
 plt.rcParams['savefig.bbox'] = 'tight'
 sns.set_style("whitegrid")
 
-# 中文字体回退方案
+# 中文字体回退方案（使用 font_manager 实际检测字体是否可用）
+import matplotlib.font_manager as fm
+font_found = False
 for font_name in ['SimHei', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'Noto Sans CJK SC']:
     try:
+        fm.findfont(font_name, fallback_to_default=False)
         plt.rcParams['font.family'] = [font_name, 'sans-serif']
+        print(f'使用字体: {font_name}')
+        font_found = True
         break
-    except:
+    except (ValueError, RuntimeError):
         continue
+if not font_found:
+    print('警告: 未找到中文字体，图表中文可能无法正常显示')
 
 print("库导入完成")
 
@@ -94,7 +101,7 @@ def parse_owners(val):
             low = int(parts[0].replace(',', '').strip())
             high = int(parts[1].replace(',', '').strip())
             return (low + high) / 2
-        except:
+        except (ValueError, TypeError):
             return np.nan
     return np.nan
 
@@ -113,7 +120,7 @@ def parse_date(val):
         return pd.NaT
     try:
         return pd.to_datetime(val)
-    except:
+    except (ValueError, TypeError):
         return pd.NaT
 
 df['release_datetime'] = df['Release date'].apply(parse_date)
@@ -136,10 +143,14 @@ print(f"  有评价的游戏: {n_with_reviews:,} ({n_with_reviews/len(df)*100:.1
 # 2.5 峰值在线人数
 df['Peak CCU'] = pd.to_numeric(df['Peak CCU'], errors='coerce')
 
-# 2.6 支持平台
-df['Windows'] = df['Windows'].astype(bool)
-df['Mac'] = df['Mac'].astype(bool)
-df['Linux'] = df['Linux'].astype(bool)
+# 2.6 支持平台（安全转换：处理字符串 'TRUE'/'FALSE' 及缺失值）
+def _to_bool(val):
+    """将字符串 'TRUE'/'FALSE' 正确转为布尔，缺失/异常值视为 False"""
+    s = str(val).strip().upper() if not pd.isna(val) else ''
+    return s == 'TRUE'
+
+for col in ['Windows', 'Mac', 'Linux']:
+    df[col] = df[col].apply(_to_bool)
 df['platform_count'] = df[['Windows', 'Mac', 'Linux']].sum(axis=1)
 
 # 2.7 折扣标记
@@ -545,6 +556,8 @@ if len(mc_data) > 10:
     print(f"\n  Metacritic vs Steam 相关系数: {mc_corr:.3f}")
 else:
     ax2.text(0.5, 0.5, 'Metacritic数据不足', ha='center', va='center', transform=ax2.transAxes)
+    mc_corr = np.nan
+    print('\n  Metacritic 数据不足，无法进行相关性分析')
 
 # 子图3: 分组对比
 ax3 = axes[1, 0]
@@ -579,10 +592,15 @@ if box_groups:
 ax4 = axes[1, 1]
 achievement_data = review_df[review_df['Achievements'] > 0].copy()
 if len(achievement_data) > 20:
+    # 使用显式对数分箱边界，确保标签与实际区间对应
+    bin_edges = [0, 1, 2, 3, 4, 5, 6, 7, 8]  # log10 尺度: 1-10, 10-100, ...
+    bin_labels = ['1-10', '10-100', '100-1千', '1千-1万', '1万-10万',
+                  '10万-100万', '100万-1000万', '1000万-1亿']
     achievement_data['achieve_bin'] = pd.cut(
         np.log10(achievement_data['Achievements'].clip(1)),
-        bins=8,
-        labels=[f'{int(10**i)}-{int(10**(i+1))}' for i in range(8)]
+        bins=bin_edges,
+        labels=bin_labels,
+        include_lowest=True
     )
     ach_rate = achievement_data.groupby('achieve_bin')['positive_rate'].median()
     valid_bins = [b for b in ach_rate.index if not pd.isna(ach_rate[b]) and ach_rate[b] > 0]
