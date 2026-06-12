@@ -20,8 +20,13 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
+import sys
 import warnings
 from datetime import datetime
+
+# 修复 Windows 控制台中文编码问题
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 warnings.filterwarnings('ignore')
 
@@ -298,7 +303,7 @@ key_pairs = [
 for a, b in key_pairs:
     if a in corr_matrix.columns and b in corr_matrix.index:
         r = corr_matrix.loc[a, b]
-        print(f"    {a} ↔ {b}: r = {r:.3f}")
+        print(f"    {a} <-> {b}: r = {r:.3f}")
 
 # 相关性热力图
 fig, ax = plt.subplots(figsize=(10, 8))
